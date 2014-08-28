@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<title>Untitled Page</title>
+    <link href="CSS/map.css" rel="stylesheet" type="text/css" />      
+    <style type="text/css">
+        html, body, #map_canvas {margin: 0; padding: 0; height: 100%;}
+    </style>
+    
+    <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false&libraries=drawing"></script> 
+  
+    
+    
+    <script type="text/javascript">       
+        function init(){			
+            var myLatlng = new google.maps.LatLng(10.799288588668356, 106.6803789138794);
+            var mapOptions = {
+                zoom: 15,
+                center: myLatlng,
+                mapTypeId: google.maps.MapTypeId.ROADMAP                
+            }
+            map = new google.maps.Map(document.getElementById('map_canvas'), mapOptions);			
+			google.maps.event.addListener(map, 'click', function(event) {
+				gLatLng=event.latLng;                
+                //view_popup(true);                        
+			});
+            //load_devices();              
+            //control();
+           // drawing_libary();
+        }	    
+	  
+		function add_darawing() {
+			alert("save successfully!");
+			view_drawing(false);
+		}
+
+function drawing_libary() {
+    var drawingManager = new google.maps.drawing.DrawingManager({
+        drawingMode: null,
+        drawingControl: true,
+        drawingControlOptions: {
+            position: google.maps.ControlPosition.TOP_CENTER,
+            drawingModes: [
+				    google.maps.drawing.OverlayType.MARKER,
+				    google.maps.drawing.OverlayType.CIRCLE,
+				    google.maps.drawing.OverlayType.POLYGON,
+				    google.maps.drawing.OverlayType.POLYLINE,
+				    google.maps.drawing.OverlayType.RECTANGLE
+			    ]
+        },
+        markerOptions: {
+            icon: 'image/marker.png',
+            editable: true,
+            draggable: true
+        },
+        circleOptions: {
+            fillColor: '#fa033d',
+            fillOpacity: 0.1,
+            strokeWeight: 1,
+            clickable: true,
+            editable: true,
+            zIndex: 1
+        },
+        polylineOptions: {                        
+            clickable: true,
+            editable: true            
+        },
+        polygonOptions: {
+            clickable: true,
+            editable: true
+        }
+    });
+
+    drawingManager.setMap(map);
+    google.maps.event.addListener(drawingManager, 'circlecomplete', function (circle) {        
+        var bts = new google.maps.Marker({
+            position: circle.getCenter(),
+            map: map,
+            draggable: true,
+            icon: "Images/bts.gif"
+        });
+        circle.bindTo('center', bts, 'position');
+    });
+
+    google.maps.event.addListener(drawingManager, 'overlaycomplete', function (event) {
+        var type = event.type;
+        if (type == "marker") {
+            gMarker = null;
+            google.maps.event.addListener(event.overlay, 'click', function (e) {
+                view_popup(true);
+                gLatLng = this.getPosition();
+                this.setMap(null);
+                /*view_drawing(true);                
+                document.getElementById("txtName").value = "";
+                document.getElementById("txtType").value = type;
+                document.getElementById("txtLatLng").value = this.getPosition() + "";
+                document.getElementById("txtRadius").value = "";*/
+            });
+        } else if (type == "circle") {
+            google.maps.event.addListener(event.overlay, 'click', function (e) {
+                view_drawing(true);
+                this.setEditable(false);
+                document.getElementById("txtName").value = "";
+                document.getElementById("txtType").value = type;
+                document.getElementById("txtLatLng").value = this.getCenter() + "";
+                document.getElementById("txtRadius").value =Math.round(this.getRadius()) + " m";
+            });
+            google.maps.event.addListener(event.overlay, 'rightclick', function (e) {
+                view_drawing(false);
+                this.setEditable(true);
+            });
+        } else if (type == "polyline") {
+            google.maps.event.addListener(event.overlay, 'click', function (e) {
+                view_drawing(true);
+                this.setEditable(false);
+                document.getElementById("txtName").value = "";
+                document.getElementById("txtType").value = type;
+                var path = this.getPath();
+                var sPath = "";
+                var polylineLength = 0;
+                for (i = 0; i < path.getLength(); i++) {
+                    sPath += path.getAt(i) + "; ";
+                    if (i > 0) {
+                        polylineLength += google.maps.geometry.spherical.computeDistanceBetween(path.getAt(i), path.getAt(i-1));
+                    }
+                }
+                document.getElementById("txtLatLng").value = sPath + "";
+                document.getElementById("txtRadius").value = Math.round(polylineLength)+ " m";
+            });
+            google.maps.event.addListener(event.overlay, 'rightclick', function (e) {
+                view_drawing(false);
+                this.setEditable(true);
+            });
+        } else if (type == "polygon") {
+            google.maps.event.addListener(event.overlay, 'click', function (e) {
+                view_drawing(true);
+                this.setEditable(false);
+                document.getElementById("txtName").value = "";
+                document.getElementById("txtType").value = type;
+                var path = this.getPath();
+                var sPath = "";
+                for (i = 0; i < path.getLength(); i++) {
+                    sPath += path.getAt(i) + "; ";
+                }
+                document.getElementById("txtLatLng").value = sPath + "";
+                document.getElementById("txtRadius").value = "";
+            });
+            google.maps.event.addListener(event.overlay, 'rightclick', function (e) {
+                view_drawing(false);
+                this.setEditable(true);
+            });
+        }
+    });
+}
+    </script>
+</head>
+
+
+<body  onload="init();">	
+	 
+     <div id="map_canvas" style="width:100%; height:100%;border:1px solid #cccccc; position: absolute;"> </div>        
+	
+</body>
+</html>
